@@ -3,33 +3,41 @@ import numpy as np
 from kalman_filter import LinearKalmanFilter
 
 
-class Simulator:
-    def __init__(self, true_value):
-        self.true_value = true_value
-
-    def get_true_value(self):
-        return self.true_value
-
-    def get_noisy_value(self):
-        return random.gauss(self.true_value, 2)
-
-
 def main():
-    A = np.matrix([1])
-    B = np.matrix([0])
-    C = np.matrix([1])
-    P = np.matrix([1])
-    Q = np.matrix([0.00001])
-    R = np.matrix([0.1])
-    x = np.matrix([3])
-
+    A = np.eye(4)
+    B = np.zeros_like(A)
+    C = np.array([[1, 0, 0, 0],
+                  [0, 1, 0, 0]])
+    P = np.eye(4)
+    Q = np.eye(4) * 1e-5
+    R = np.eye(2) * 1e-1
+    x = np.array([[0], [0], [0], [0]])
     kf = LinearKalmanFilter(A, B, C, P, Q, R, x)
-    sim = Simulator(1)
 
-    for i in range(100):
-        y = sim.get_noisy_value()
-        x = kf.step(np.matrix([0]), y)
-        print(i, y, x)
+    x0 = 10
+    y0 = 10
+    vx = 5
+    vy = 2
+    d1 = 0
+    d2 = 0
+    for t in range(100):
+        xt = x0 + vx * t
+        yt = y0 + vy * t
+        xt_noisy = random.gauss(xt, 10)
+        yt_noisy = random.gauss(yt, 10)
+
+        kf.A[0, 2] = 1
+        kf.A[1, 3] = 1
+        u = np.array([[0], [0], [0], [0]])
+        y = np.array([[xt_noisy], [yt_noisy]])
+        out = kf.step(u, y)
+        print(xt, yt, int(xt_noisy), int(yt_noisy),
+              int(out[0][0]), int(out[1][0]))
+
+        d1 += abs(xt - xt_noisy) + abs(yt-yt_noisy)
+        d2 += abs(xt - out[0][0]) + abs(yt-out[1][0])
+    print(d1)
+    print(d2)
 
 
 if __name__ == '__main__':

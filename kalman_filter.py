@@ -31,11 +31,11 @@ class LinearKalmanFilter:
         return self.x
 
     def predict(self, u):
-        self.x = self.A * self.x + self.B * u
-        self.P = self.A * self.P * self.A.T + self.Q
+        self.x = self.A @ self.x + self.B @ u
+        self.P = self.A @ self.P @ self.A.T + self.Q
 
     def update(self, y):
-        tmp = self.P * self.C.T
-        self.K = tmp * np.linalg.inv(self.C * tmp + self.R)
-        self.x = self.x + self.K * (y - self.C * self.x)
-        self.P = (np.eye(self.x.shape[0]) - self.K * self.C) * self.P
+        tmp = self.P @ self.C.T
+        self.K = tmp @ np.linalg.inv(self.C @ tmp + self.R)
+        self.x = self.x + self.K @ (y - self.C @ self.x)
+        self.P = (np.eye(self.x.shape[0]) - self.K @ self.C) @ self.P
